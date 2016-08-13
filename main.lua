@@ -14,8 +14,8 @@
 
 -- local myText = display.newText( "Hello, World!", display.contentCenterX, display.contentWidth / 4, native.systemFont, 40 )
 -- myText:setFillColor( 1, 110/255, 110/255 )
-local current_state = 5
-local gridSize = 3
+local current_state = 13
+local gridSize = 5
 function stateGenerator(grip)
 	local states = {}
 	local width = display.contentWidth/grip
@@ -52,7 +52,7 @@ local generatedStates = stateGenerator(gridSize)
 
 local flickedThreshold = 20
 local parentGroupObject = display.newGroup()
--- local background = display.newImage( parentGroupObject, "word.jpg", display.contentCenterX, display.contentCenterY )
+local background = display.newImage( parentGroupObject, "world.jpg", display.contentCenterX, display.contentCenterY )
 local platform = display.newImage( parentGroupObject, "icon.png", display.contentCenterX, display.contentCenterY )
 
 local ball = display.newImage(parentGroupObject, "Icon-76.png", display.contentCenterX, display.contentCenterY )
@@ -85,7 +85,7 @@ function getTheSectionToTransitionTo(direction)
  	if ( (direction == "U") and (current_state > gridSize )) then
  		current_state = current_state - gridSize
  	elseif (direction == "D" and current_state <= gridSize * (gridSize - 1)) then
- 		current_state = (current_state + gridSize)%gridSize
+ 		current_state = (current_state + gridSize)
  	elseif (direction == "R" and current_state%gridSize ~= 0) then
  		current_state = current_state + 1
  	elseif (direction == "L" and current_state%gridSize ~= 1) then
@@ -107,9 +107,12 @@ local function onFlicked( event )
     elseif ( event.phase == "moved" ) then
     elseif ( event.phase == "ended" ) then
         local flickedDirection = getFlickedDirection(event.xStart, event.yStart, event.x, event.y)
+        print( flickedDirection )
+
         if (flickedDirection ~= "NOTHING") then
         	print( flickedDirection )
         	local coord = getTheSectionToTransitionTo(flickedDirection)
+        	print( coord["x"], coord["y"] )
         	transitionBox(coord["x"], coord["y"])
         end
     end
