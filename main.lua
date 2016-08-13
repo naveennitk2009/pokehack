@@ -14,9 +14,45 @@
 
 -- local myText = display.newText( "Hello, World!", display.contentCenterX, display.contentWidth / 4, native.systemFont, 40 )
 -- myText:setFillColor( 1, 110/255, 110/255 )
+local current_state = 5
+local gridSize = 3
+function stateGenerator(grip)
+	local states = {}
+	local width = display.contentWidth/grip
+	local height = display.contentHeight/grip
+	local x = {}
+	local y = {}
+	x[0] = width/2
+	y[0] = height/2
+	local i = 1
+	while i < grip do
+		x[i] = x[i-1] + width
+		y[i] = y[i-1] + height
+		i = i+1
+	end
+	local i = 0
+	while i < grip^2 do
+		local temp = {}
+		temp[0] = x[(i%grip)]
+		temp[1] = y[math.floor(i/grip)]
+		-- print(math.floor(i/grip))
+		states[i+1] = temp
+		-- print(i, temp[0], temp[1])
+		i = i + 1
+	end
+	return states
+end
+-- print(display.contentWidth, display.contentHeight)
+local generatedStates = stateGenerator(gridSize)
+-- local i = 0
+-- while i < 9 do
+-- 	print(generatedStates[i+1][0], generatedStates[i+1][1])
+-- 	i = i+1
+-- end
+
 local flickedThreshold = 20
 local parentGroupObject = display.newGroup()
-local background = display.newImage( parentGroupObject, "word.jpg", display.contentCenterX, display.contentCenterY )
+-- local background = display.newImage( parentGroupObject, "word.jpg", display.contentCenterX, display.contentCenterY )
 local platform = display.newImage( parentGroupObject, "icon.png", display.contentCenterX, display.contentCenterY )
 
 local ball = display.newImage(parentGroupObject, "Icon-76.png", display.contentCenterX, display.contentCenterY )
@@ -45,8 +81,20 @@ function getFlickedDirection(prevX, prevY, curX, curY)
  	end	
 end
 
-function getTheSectionToTransitionTo(posX, posY)
-	-- body
+function getTheSectionToTransitionTo(direction)
+ 	if ( (direction == "U") and (current_state > gridSize )) then
+ 		current_state = current_state - gridSize
+ 	elseif (direction == "D" and current_state <= gridSize * (gridSize - 1)) then
+ 		current_state = (current_state + gridSize)%gridSize
+ 	elseif (direction == "R" and current_state%gridSize ~= 0) then
+ 		current_state = current_state + 1
+ 	elseif (direction == "L" and current_state%gridSize ~= 1) then
+ 		current_state = current_state -1
+ 	end
+	temp = {}
+	temp["x"] = generatedStates[current_state][0]
+	temp["y"] = generatedStates[current_state][1]
+	return temp
 end
 
 function transitionBox(posX, posY)
@@ -60,7 +108,9 @@ local function onFlicked( event )
     elseif ( event.phase == "ended" ) then
         local flickedDirection = getFlickedDirection(event.xStart, event.yStart, event.x, event.y)
         if (flickedDirection ~= "NOTHING") then
-        	transitionBox(event.x, event.y)
+        	print( flickedDirection )
+        	local coord = getTheSectionToTransitionTo(flickedDirection)
+        	transitionBox(coord["x"], coord["y"])
         end
     end
     return true  -- Prevents tap/touch propagation to underlying objects
